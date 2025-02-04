@@ -650,7 +650,7 @@ ggplot(OSM_2023_deploy, aes(color = array)) +
 <div id="export-the-cleaned-deployment-data" class="section level2">
 <h2>2.4. Export the cleaned deployment data</h2>
 <pre class="r"><code>write_csv(OSM_2023_deploy,
-          &#39;./data/processed/OSM_2023_deployment.csv&#39;)
+          &#39;./data/processed/OSM_deployment-dates_2023.csv&#39;)
 
 rm(OSM_2023_deploy_raw)</code></pre>
 </div>
@@ -661,7 +661,7 @@ data</h2>
 <p>Set to eval=FALSE as default. Run this manually in your console if
 you’re running the script in multiple steps or over multiple days.</p>
 </blockquote>
-<pre class="r"><code>OSM_2023_deploy &lt;- read_csv(&#39;data/processed/OSM_2023_deployment.csv&#39;) %&gt;% 
+<pre class="r"><code>OSM_2023_deploy &lt;- read_csv(&#39;data/processed/OSM_deployment-dates_2023.csv&#39;) %&gt;% 
   # make sure site re-reads in as a factor to compare with other data sets
   mutate(site = as.factor(site))</code></pre>
 <hr />
@@ -913,7 +913,7 @@ depending on the version of Timelapse used.</p>
 )
 
 # Export the data as a .csv. This will never be used again but it&#39;s always nice to have backups ;)
-write_csv(OSM_2023_data, file=&quot;./data/raw/OSM_2023_raw_import.csv&quot;)</code></pre>
+# write_csv(OSM_2023_data, file=&quot;./data/raw/OSM_2023_raw_import.csv&quot;)</code></pre>
 <hr />
 </div>
 </div>
@@ -1582,14 +1582,14 @@ project:</p>
 
 # 1. Into my working data folder for the RProject
 write.csv(OSM_2023_data_clean %&gt;% mutate(datetime = paste0(&quot; &quot;, format(datetime, format = &quot;%Y-%m-%d %H:%M:%S&quot;))), 
-          file = &#39;data/processed/OSM_2023_data_clean.csv&#39;,
+          file = &#39;data/processed/OSM_timelapse_2023.csv&#39;,
           na = &quot;&quot;, row.names = FALSE)
 
 # 2. Into an archive on the netdrive
 with_dir(new = my_netdrive, 
          
   write.csv(OSM_2023_data_clean %&gt;% mutate(datetime = paste0(&quot; &quot;, format(datetime, format = &quot;%Y-%m-%d %H:%M:%S&quot;))), 
-            file = &#39;2. Timelapse Files/OSM_2023_data_clean.csv&#39;,
+            file = &#39;2. Timelapse Files/OSM_timelapse_2023.csv&#39;,
             na = &quot;&quot;, row.names = FALSE)
   )</code></pre>
 <p>In case someone (for some reason) wants to look at data from a single
