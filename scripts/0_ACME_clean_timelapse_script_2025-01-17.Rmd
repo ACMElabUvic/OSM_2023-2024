@@ -204,7 +204,7 @@ ggplot(OSM_2023_deploy, aes(color = array)) +
 
 ```{r export}
 write_csv(OSM_2023_deploy,
-          './data/processed/OSM_deployment-dates_2023.csv')
+          './data/processed/OSM_deployment_2023.csv')
 
 rm(OSM_2023_deploy_raw)
 ```

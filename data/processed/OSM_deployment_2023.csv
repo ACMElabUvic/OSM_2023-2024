@@ -39,7 +39,7 @@ LU09,LU09_76,2023-09-16,2024-09-09,NA
 LU09,LU09_77,2023-09-14,2024-09-09,NA
 LU09,LU09_79,2023-09-14,2024-09-10,NA
 LU09,LU09_80,2023-09-15,2024-09-10,NA
-LU09,LU09_81,2023-09-16,2024-09-09,"""Error Replace SD"" upon retreival. Camera stopped taking photos after 09-Feb-2024 19:03:17"
+LU09,LU09_81,2023-09-16,2024-02-09,"Retrived in field Sept 9. ""Error Replace SD"" upon retreival. Camera stopped taking photos after 09-Feb-2024 19:03:17"
 LU09,LU09_85,2023-09-14,2024-09-10,NA
 LU09,LU09_82,2023-09-14,2024-09-09,NA
 LU09,LU09_86,2023-09-14,2024-09-09,NA
@@ -82,8 +82,8 @@ LU14,LU14_57,2023-10-03,NA,Un retrievable due to flooding
 LU14,LU14_61,2023-09-30,2024-09-30,NA
 LU14,LU14_62,2023-10-02,2024-09-26,Field datasheet incorrectly states Oct 3 as start date
 LU14,LU14_63,2023-09-30,2024-09-30,NA
-LU14,LU14_66,2023-09-30,2024-09-30,"""Error Replace SD"" message upon retreival. Camera stops capturing images after Feb 10th"
-LU14,LU14_70,2023-10-02,2024-09-26,"""Error Replace SD"" message upon retreival. Camera stops capturing images after April 4th"
+LU14,LU14_66,2023-09-30,2024-02-10,"Retrieved in field Sept 30. ""Error Replace SD"" message upon retreival. Camera stops capturing images after Feb 10th"
+LU14,LU14_70,2023-10-02,2024-04-04,"Retrieved in field Sept  26. ""Error Replace SD"" message upon retreival. Camera stops capturing images after April 4th"
 LU14,LU14_71,2023-10-03,2024-09-27,NA
 LU14,LU14_72,2023-10-02,2024-09-27,NA
 LU14,LU14_74,2023-10-02,2024-09-27,NA
@@ -91,7 +91,7 @@ LU14,LU14_75,2023-10-03,2024-09-27,NA
 LU14,LU14_76,2023-10-02,2024-09-27,NA
 LU14,LU14_78,2023-10-03,2024-09-27,NA
 LU14,LU14_80,2023-10-02,2024-09-26,NA
-LU14,LU14_84,2023-10-02,2024-09-26,"""Error Replace SD"" message upon retrieval. Camera stops capturing images after August 6th"
+LU14,LU14_84,2023-10-02,2024-08-06,"Retrieved in field Sept 26. ""Error Replace SD"" message upon retrieval. Camera stops capturing images after August 6th"
 LU14,LU14_85,2023-10-03,2024-09-27,NA
 LU14,LU14_86,2023-09-26,2024-09-26,NA
 LU14,LU14_88,2023-10-03,2024-09-27,NA
@@ -125,13 +125,13 @@ LU16,LU16_37,2023-10-01,2024-09-28,NA
 LU16,LU16_49,2023-10-04,2024-09-24,NA
 LU16,LU16_52,2023-10-04,2024-09-24,NA
 LU16,LU16_54,2023-09-29,2024-09-24,NA
-LU16,LU16_55,2023-09-29,2024-09-24,Camera stops capturing images affter 16-Jan-2024 06:15:37
+LU16,LU16_55,2023-09-29,2024-01-16,Retrieved in field Sept 24. Camera stops capturing images affter 16-Jan-2024 06:15:37
 LU16,LU16_57,2023-09-29,2024-09-24,NA
 LU16,LU16_58,2023-09-29,2024-09-24,NA
 LU16,LU16_60,2023-10-04,2024-09-24,NA
 LU16,LU16_62,2023-09-29,2024-09-24,NA
 LU16,LU16_63,2023-09-28,2024-09-24,NA
-LU16,LU16_64,2023-09-29,2024-09-24,"""Card Error #114"" No data images captured. Stoped capturing images after slate photo."
+LU16,LU16_64,2023-09-29,2023-09-29,"Retrieved in field Sept 24. ""Card Error #114"" No data images captured. Stoped capturing images after slate photo."
 LU16,LU16_67,2023-09-28,2024-09-24,NA
 LU16,LU16_68,2023-09-28,2024-09-24,NA
 LU16,LU16_69,2023-09-28,2024-09-24,NA
@@ -150,7 +150,7 @@ LU16,LU16_85,2023-09-29,2024-09-24,NA
 LU16,LU16_88,2023-09-29,2024-09-24,"Camera is programmed 1 day behind, corrected"
 LU22,LU22_4,2023-09-19,2024-09-06,NA
 LU22,LU22_5,2023-09-19,2024-09-06,NA
-LU22,LU22_6,2023-09-21,2024-09-06,"Camera stops capturing images after Oct 22, 2023"
+LU22,LU22_6,2023-09-21,2023-10-22,"Retrieved in field Sept 6. Camera stops capturing images after Oct 22, 2023"
 LU22,LU22_7,2023-09-21,2024-09-06,NA
 LU22,LU22_8,2023-09-19,2024-09-06,NA
 LU22,LU22_101,2023-09-21,2024-09-07,NA
@@ -171,7 +171,7 @@ LU22,LU22_33,2023-09-19,2024-09-06,NA
 LU22,LU22_34,2023-09-19,2024-09-06,NA
 LU22,LU22_35,2023-09-19,2024-09-06,NA
 LU22,LU22_36,2023-09-19,2024-09-06,NA
-LU22,LU22_38,2023-09-19,2024-09-07,"""Error Replace SD"" message upon retrieval. Camera stops capturing images after Jan 28."
+LU22,LU22_38,2023-09-19,2024-01-28,"Retrieved in field Sept 7. ""Error Replace SD"" message upon retrieval. Camera stops capturing images after Jan 28."
 LU22,LU22_40,2023-09-21,2024-09-07,NA
 LU22,LU22_44,2023-09-20,2024-09-07,NA
 LU22,LU22_46,2023-09-21,2024-09-07,NA
