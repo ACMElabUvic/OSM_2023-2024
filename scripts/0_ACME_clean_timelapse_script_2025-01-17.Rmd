@@ -202,6 +202,8 @@ ggplot(OSM_2023_deploy, aes(color = array)) +
 
 ## 2.4. Export the cleaned deployment data
 
+Now that this data is cleaned up we should save it to the data/processed folder in case we need the cleaned version later so we don't have to repeat the above steps.
+
 ```{r export}
 write_csv(OSM_2023_deploy,
           './data/processed/OSM_deployment_2023.csv')
