@@ -129,7 +129,7 @@ deploy <- read_csv('data/processed/OSM_deployment_2023.csv') %>%
 
 # create graph of camera operability
 
-ggplot(deploy_fixed, aes(color = array))+
+ggplot(deploy, aes(color = array))+
   
   geom_segment(aes(x = start_date, 
                    xend = end_date,
@@ -391,7 +391,7 @@ det_graph
 
 If we want to save the plot for easier viewing later we can use the code below
 
-```{r save det_graph, eval=FALSE}
+```{r save det_graph, eval=TRUE}
 
 # save graph as jpeg (can also save as tiff, png, pdf by changing the file extension) but don't use .tiff in the github repo it takes up too much space and causes issues
 ggsave('2023_indv_det_graph.jpeg',
@@ -805,7 +805,8 @@ For plotting and formatting proportional monthly detections we need to create a 
 
 The first response metric we will calculate is the total number of independent detections per species per site. 
 
-To do this we use the detections data we created earlier from the raw Timelapse data. We need to group by site and species and then we can use the `summarise()` function with the `n()` function to count the total detections 
+To do this we use the detections data we created earlier from the raw Timelapse data. We need to group by site and species and then we can use the `summarise()` function with the `n()` function to count the total detections.
+
 After that we ungroup the data so if we run an analysis or make a plot it doesn't stay grouped and then we use the `pivot_wider()` function to make a column for each species and a row for each site.
 
 Finally we need to replace any NAs with zeros (the `n()` function function won't insert a zero if there aren't any observations to count so these NAs are indeed zeros)
@@ -881,7 +882,7 @@ This is not the most readable plot because some species are skewing the x axis r
 
 If we want to save the plot for easier viewing later we can use the code below
 
-```{r save plot total ind det, eval=FALSE}
+```{r save plot total ind det, eval=TRUE}
 
 # save graph as jpeg (can also save as tiff, png, pdf by changing the file extension)
 ggsave('OSM_total_detections_site_2023.jpeg',
@@ -960,7 +961,7 @@ species_presence_plot
 
 If we want to save the plot for easier viewing later we can use the code below
 
-```{r save plot presence/absence, eval=FALSE}
+```{r save plot presence/absence, eval=TRUE}
 
 # save graph as jpeg (can also save as tiff, png, pdf by changing the file extension)
 ggsave('OSM_total_presence_absence_2023.jpeg',
@@ -1040,20 +1041,20 @@ First, organize our independent detections into monthly bins. These will be the 
 ```{r}
 monthly_presence <- detections %>%
   
-  distinct(array, site, species, month) %>% # keep one copy of detections for each week
+  distinct(array, site, species, month, year) %>% # keep one copy of detections for each month/year
   
 #  filter(month %in% all_operating_months$month) %>% # retain only the data for weeks with sufficient number of days >4. The rest we don't want. 
   mutate(presence = 1)
 ```
 
-Second, let's merge our monthly presence into the list of *all* operating months. Where NAs are introduced into the *presence* column, there was no detection of the given species in that month. We will replace these NAs with "0" to denote 'true' absence. 
+Second, let's merge our monthly presence into the list of *all* operating months with >15 days. Where NAs are introduced into the *presence* column, there was no detection of the given species in that month. We will replace these NAs with "0" to denote 'true' absence. 
 
 ```{r}
 monthly_presenceabsence <- deploy_active_months %>%
   
-  crossing(species = unique(as.character(all_presence_months$species))) %>%
+  crossing(species = unique(as.character(monthly_presence$species))) %>%
   
-  left_join(monthly_presence, by = c("array", "site", "month", "species")) %>%
+  left_join(monthly_presence, by = c("array", "site", "month", "species", "year")) %>%
   
   mutate(presence = replace_na(presence, 0), # Fill missing detections with 0
          species = as.factor(species))
@@ -1065,7 +1066,6 @@ Save the presence-absence dataset:
 write_csv(monthly_presenceabsence,
           './data/processed/OSM_monthly_presence_absence_2023.csv')
 ```
-
 
 Then from the data we keep we can create a new data frame that has 1 row per camera and a column for each species indicating how many of the active months each species was detected at that camera.
 
@@ -1125,6 +1125,7 @@ for (col in cols) {
 ```
 
 We want to rename the species columns so they don't have spaces (r doesn't like spaces for column names but it was fine when they were entries in the data)
+
 ```{r prop month detections step 4: rename species columns}
 
 # rename columns for species because R doesn't like spaces
