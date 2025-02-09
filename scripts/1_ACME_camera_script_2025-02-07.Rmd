@@ -1,14 +1,12 @@
 ---
-title: "ACME camera script 9-2-2024"
+title: "ACME Wildlife Detection and Covariate Processing"
 author: "Marissa A. Dyck and Aidan M. Brushett"
-date: "2024-02-09"
+date: "2025-02-09"
 output:
-  pdf_document:
-    toc: true
   html_document:
-    theme: journal
+    theme: default
     toc: true
-    toc_float: true
+    toc_float: false
 ---
  
 > IMPORTANT the first two chunks of this r markdown file **after** the r setup allow for plot zooming, but it also means that the html file must be opened in a browser to view the document properly. When it knits in RStudio the preview will appear empty but the html when opened in a browser will have all the info and you can click on each plot to Zoom in on it. 
@@ -40,7 +38,6 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
     });
   });
 ```
-
 
 
 # Before you begin
@@ -90,6 +87,7 @@ This script is written in R markdown and thus uses a mix of coding markup langua
 Below is an R markdown cheatsheet to help you get started,    
 [R markdown cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)    
 
+# Setup
 
 ## Install packages
 
@@ -101,7 +99,6 @@ install.packages('tidyverse')
 install.packages('withr') 
 ```
 
-
 ## Load libraries
 
 Then load the packages to your library.
@@ -112,8 +109,7 @@ library('tidyverse') # data tidying, visualization, and much more; this will loa
 library('withr') # used to temporarily set wd
 ```
 
-
-## Camera operability 
+# Camera operability 
 
 We can check the length each camera was operating using the cleaned deployment data, this is important for calculating the proportional presence/absences for analysis later on so we need to make sure nothing looks inaccurate here.
 
@@ -140,8 +136,7 @@ ggplot(deploy, aes(color = array))+
 
 ```
 
-
-## Load in the cleaned timelapse data for this year. 
+# Process the detection data
 
 Error-checking is done in script 0 now, so code from the 2022-2023 version of this script related to data inspection and manipulation has been removed. 
 
@@ -161,7 +156,7 @@ OSM_2023_data <- read_csv("./data/processed/OSM_timelapse_2023.csv",
 str(OSM_2023_data)
 ```
 
-## Summaries
+## Data summaries
 
 Some summaries we may need for reports etc. 
 
@@ -215,7 +210,6 @@ focal_mammals <- OSM_2023_data %>%
   
   filter(species %in% focal_species)
 ```
-
 
 ## Independent detections
 
@@ -391,7 +385,7 @@ det_graph
 
 If we want to save the plot for easier viewing later we can use the code below
 
-```{r save det_graph, eval=TRUE}
+```{r save det_graph, eval=FALSE}
 
 # save graph as jpeg (can also save as tiff, png, pdf by changing the file extension) but don't use .tiff in the github repo it takes up too much space and causes issues
 ggsave('2023_indv_det_graph.jpeg',
@@ -407,6 +401,7 @@ ggsave('2023_indv_det_graph.jpeg',
 ### Independent detections per LU
 
 let's also create one that graphs each LU in it's own panel using facet_wrap
+
 ```{r det graph LUs}
 # let's also create one that graphs each LU in it's own panel using facet_wrap
 det_plot_LUs <- detections %>% 
@@ -470,26 +465,6 @@ ggsave('figures/OSM_ind_det_per_LU_2023.jpg',
 ```
 
 
-
-
-
-
-
-
-
-
-------- END AIDAN CODE SO FAR. 
-
-
-
-
-
-
-
-
-
-
-
 # Covariate data
 
 ## Import covariate data
@@ -512,11 +487,11 @@ The code below will
 
 covariate_data <-    
   # provide file path (e.g. folders to find the data)
-  file.path('data/raw',
+  file.path('data/raw/',
             
             # provide the file names
-            c('OSM_LU01_LU13_LU15_LU21_HFI_2022_2024-04-19.csv',
-              'OSM_LU01_LU13_LU15_LU21_VEG_2022_2024-04-19.csv')) %>%
+            c('OSM_LU09_LU14_LU16_LU22_HFI_2023_20250209.csv',
+              'OSM_LU09_LU14_LU16_LU22_VEG_2023_20250209.csv')) %>%
   
   # use purrr map to read in files, the ~.x is a placeholder that refers to the object before the last pipe (aka the list of data we are reading in) so all functions inside the map() after ~.x will be performed on all the objects in the list we provided
   map(~.x %>%
@@ -532,8 +507,12 @@ covariate_data <-
         # set the column names to lower case
         set_names(
           names(.) %>% 
-            tolower())) %>% 
-            
+            tolower()) %>% 
+        
+        mutate(site = gsub("-", "_", site) %>% # First, replace any hyphens with underscores
+                gsub("_0+", "_", .) %>% # Then, remove leading zeros after the underscore
+                  as.factor(.)) 
+  ) %>%
            
   # set the names of the two files in the list, if you don't run this they will be named numerically (e.g. [1], [2]) which can get confusing
   purrr::set_names('HFI',
@@ -552,11 +531,12 @@ Even though we set some of the columns to read in as a specific type in the data
 ```{r}
 str(covariate_data)
 ```
+
 From a quick glance everything looks good. 
 
 ### Sites
 
-Now let's check that all the sites are accounted for, there should be 155 just like with the timelapse data
+Now let's check that all the sites are accounted for, there should be 199 just like with the timelapse data
 
 ```{r covariates site names}
 
@@ -567,7 +547,7 @@ levels(covariate_data$HFI$site)
 levels(covariate_data$VEG$site)
 ```
 
-There are 155 for both data sets and I don't see any glaring issues but we can use a function in R to check that these match perfectly.
+There are 199 for both data sets and I don't see any glaring issues but we can use a function in R to check that these match perfectly.
 
 *If you are getting a NULL output for any of the `setdiff()` lines of code, then you need to make sure that site is actually a factor in both the data sets.* Sometimes data manipulation steps change how the variable is reading in R so you made need to fix this. 
 
@@ -578,19 +558,16 @@ setdiff(levels(covariate_data$VEG$site),
 
 # no mismatches
 
-# we need to check that they also match the osm_2022_Det
+# we need to check that they also match the osm_2023_Det
 setdiff(levels(detections$site),
         levels(covariate_data$HFI$site))
-
-# [1] "LU12_51" "LU15_35"
-# there seems to be two site names that are different between the covariate data sets and the detection data
+# no mismatches
 
 # reverse the order to see which two are extras in the covariate data
 setdiff(levels(covariate_data$HFI$site),
         levels(detections$site))
-
-# [1] "LU13_51" "LU13_35" it looks like the landscape units might have gotten typed in wrong. # checked with original data and these are the correct ones 
-
+# [1] "LU14_57"
+# This site was unretrievable due to flooding, so this makes sense! We will retain the covariates from this site. In case this camera is ever retrieved, we will not need to re-extract covariates. 
 ```
 
 > We fixed the site issue in the raw data since it's important that the site names are correct so you won't see a difference between the data sets now but I've left the code as an example.
@@ -603,6 +580,7 @@ We should check that the column names all look good, there are a ton for the HFI
 
 names(covariate_data$HFI)
 ```
+
 These look okay but we should replace the dash '-' with and underscore '_' to match formatting of other files and because it's easier for R to work with.
 
 We also want to add array and camera columns which we can do using the site data.
@@ -613,18 +591,18 @@ Let's check the VEG data too
 
 names(covariate_data$VEG)
 ```
-We also need to add array and camera columns which we can do using the site data.
 
+We also need to add array and camera columns which we can do using the site data.
 
 ### NAs
 
 Let's check the summary for any NAs that shouldn't be in the data, mostly we are looking for NAs in the site or buff_dist columns
 
 ```{r}
-
 summary(covariate_data$HFI)
 summary(covariate_data$VEG)
 ```
+
 Everything looks good!
  
 
@@ -647,7 +625,7 @@ This code will do the following data formatting on both files simultaneously usi
       
       set_names(
         names(.) %>% 
-          # remove the FEATURE_TY in front of all the column names because it's not helpful
+          # remove the FEATURE_TY in front of all the column names because it's not helpful. Not present anyway in 2023
           str_remove(pattern = "feature_ty") %>% 
           
           # replace the '.' with '_' in the feature column names
@@ -680,7 +658,6 @@ names(covariate_data_fixed$VEG)
 
 ```
 
-
 ## Join covariate data
 
 Now we need to join the HFI and VEG files together
@@ -690,10 +667,9 @@ covariates_all <- covariate_data_fixed$HFI %>%
   
   #use full join in case any issues with missing observations but we should be good since we checked the site names
   full_join(covariate_data_fixed$VEG,
-            by = c('array', 'camera', 'site', 'buff_dist'))
-
-
-head(covariates_all)
+            by = c('array', 'camera', 'site', 'buff_dist')) %>%
+  
+  select(-any_of('feature_area')) # This is an unused helper column from Emerald's covariate script that can be discarded
 
 ```
 
@@ -708,7 +684,7 @@ Let's also save this for future use
 
 # save joined data 
 write_csv(covariates_all,
-          'data/processed/OSM_covariates_2022.csv')
+          'data/processed/OSM_covariates_2023.csv')
 
 ```
 
@@ -719,9 +695,25 @@ We may want each buffer to have it's own column for each variable (e.g. create a
 
 covariates_all_wide <- covariates_all %>% 
   
-  pivot_wider(.,
-              names_from = buff_dist,
-              values_from = c(vegetated_edge_roads:lc_class230))
+  # pivot wider was not collapsing the data very well with the camera and array variables present. 
+  # let's remove them first. 
+  select(site, buff_dist, harvest_area:lc_class230) %>% 
+
+  # wide data
+  pivot_wider(names_from = buff_dist,
+              values_from = c(harvest_area:lc_class230)) %>%
+  
+  # let's re-add the array and camera columns that we previously lost.
+  # this code is redundant but seems to help `pivot_wider` do its job. 
+  separate_wider_delim(site,
+                       delim = '_',
+                       names = c('array',
+                                 'camera'),
+                       cols_remove = FALSE) %>%
+  
+  # specify format of new columns
+  mutate(array = as.factor(array),
+         camera = as.factor(camera))
 
 head(covariates_all_wide)
 ```
@@ -732,25 +724,8 @@ Let's also save this data
 
 # save wide format data 
 write_csv(covariates_all_wide,
-          'data/processed/OSM_covariates_wide_2022.csv')
+          'data/processed/OSM_covariates_wide_2023.csv')
 ```
-
-
-
-
-
-
-
-
------------ AIDAN HAS NOT TOUCHED COVARIATE CODE YET
-
-
-
-
-
-
-
-
 
 
 # Response metrics
@@ -882,7 +857,7 @@ This is not the most readable plot because some species are skewing the x axis r
 
 If we want to save the plot for easier viewing later we can use the code below
 
-```{r save plot total ind det, eval=TRUE}
+```{r save plot total ind det, eval=FALSE}
 
 # save graph as jpeg (can also save as tiff, png, pdf by changing the file extension)
 ggsave('OSM_total_detections_site_2023.jpeg',
@@ -953,15 +928,13 @@ ggplot(.,
   theme(axis.text.x = element_text(angle = 90,
                                    size = 3))
 
-
-
 # view plot
 species_presence_plot
 ```
 
 If we want to save the plot for easier viewing later we can use the code below
 
-```{r save plot presence/absence, eval=TRUE}
+```{r save plot presence/absence, eval=FALSE}
 
 # save graph as jpeg (can also save as tiff, png, pdf by changing the file extension)
 ggsave('OSM_total_presence_absence_2023.jpeg',
