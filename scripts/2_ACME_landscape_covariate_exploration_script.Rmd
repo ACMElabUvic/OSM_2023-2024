@@ -1,0 +1,519 @@
+---
+title: "ACME Landscape Covariate Exploration Script"
+author: "Marissa Dyck"
+date: "2025-02-09"
+output: 
+  html_document:
+    theme: default
+    toc: yes
+    toc_float: yes
+---
+
+
+The first two chunks of this r markdown file after the r setup allow for plot zooming, but it also means that the html file must be opened in a browser to view the document properly. When it knits in RStudio the preview will appear empty but the html when opened in a browser will have all the info and you can click on each plot to Zoom in on it. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+```{css zoom-lib-src, echo = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+```
+
+```{js zoom-jquery, echo = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
+# Before you begin
+
+## Notes
+
+A few notes about this script.
+
+If you are running this with the 2022-2023 data make sure you download the whole (OSM_2023-2024 GitHub repository)[https://github.com/ACMElabUvic/OSM_2023-2024] from the ACMElabUvic GitHub. This will ensure you have all the files, data, and proper folder structure you will need to run this code and associated analyses.
+
+Also make sure you open RStudio through the R project (OSM_2023-2024.Rproj) this will automatically set your working directory to the correct place (wherever you saved the repository) and ensure you don't have to change the file paths for some of the data.
+
+Lastly, if you are looking to adapt this code for a future year of data, you will want to ensure you have run the 1_ACME_camera_script_2025-02-07.R or .Rmd with your data as there is much data formatting, cleaning, and restructuring that has to be done before this code will work. *Helpful note: The files are numbered in the order they are used for this analysis*.
+
+If you have question please email the most recent author, currently 
+
+Marissa A. Dyck   
+Postdoctoral research fellow    
+University of Victoria    
+School of Environmental Studies     
+Email: [marissadyck17@gmail.com](marissadyck17@gmail.com)      
+
+(*update/add authors as needed*)
+
+
+## R and RStudio
+
+Before starting you should ensure you have the latest version of R and RStudio downloaded. This code was generated under R version 4.2.3 and with RStudio version 2024.04.2+764.    
+
+You can download R and RStudio [HERE](https://posit.co/download/rstudio-desktop/)   
+
+
+## R markdown
+
+This script is written in R markdown and thus uses a mix of coding markup languages and R. If you are planning to run this script with new data or make any modifications you will want to be familiar with some basics of R markdown.
+
+Below is an R markdown cheatsheet to help you get started,    
+[R markdown cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)    
+
+
+## Install packages
+
+If you don't already have the following packages installed, use the code below to install them. *NOTE this will not run automatically as eval=FALSE is included in the chunk setup (i.e. I don't want it to run every time I run this code since I have the packages installed)
+
+```{r install packages, eval=FALSE}
+
+install.packages('tidyverse')
+#install.packages('PerformanceAnalytics')
+#install.packages('Hmisc')
+
+```
+
+## Load libraries
+
+Then load the packages to your library.
+
+```{r libraries, message=FALSE}
+
+library(tidyverse) # data tidying, visualization, and much more; this will load all tidyverse packages, can see complete list using tidyverse_packages()
+#library(PerformanceAnalytics)    #Used to generate a correlation plot
+#library(Hmisc) # used to generate histograms for all variables in data frame
+
+```
+
+
+# Data
+
+## Import data
+
+To do any analysis with the detection data from the OSM arrays, we will want to pair it with the covariate data which has human factors indices (HFI) and landcover data (VEG) for each site. There are a lot of covariates/features in these datasets that need to be grouped together to be usable, which is what this script covers. 
+
+Let's read in the covariate data  **for all 6 LUs** (outputs from the 2021-2022 and 2022-2023 1_ACME_camera_script_9-2-2024.Rmd). We've copied the 2021-2022 data from the OSM_2021-2022 repository and saved it to the processed folder so we can read in both data files with the same file path.
+
+```{r read data}
+
+# model covariates (merged HFI and VEG data from the ACME_camera_script_9-2-2024.R or .Rmd)
+covariates <-  file.path('data/processed',
+                         
+                         c('OSM_covariates_2023.csv',
+                           'OSM_covariates_2022.csv',
+                           'OSM_covariates_2021.csv')) %>% 
+  
+  map(~.x %>%
+        read_csv(.,
+                 
+                 # set the column types to read in correctly
+                 col_types = cols(array = col_factor(),
+                                  camera = col_factor(),
+                                  site = col_factor(),
+                                  buff_dist = col_factor(),
+                                  .default = col_number()))) %>% 
+  
+  # give names to each data frame in list
+  purrr::set_names('covs_2023',
+                   'covs_2022',
+                   'covs_2021') # R doesn't like when they are just numbers, you can make it work but it's annoying to call the data frame later so I've called them covs_year
+
+# check variable structure
+str(covariates)
+
+```
+
+You may get a warning about parsing issues, don't panic this is fine.
+
+## Join data
+
+We want one singular covariate data frame, not two list elements with separate data frames as we have now. So we need to join the two data frames. We've done our best to ensure these are formatted similarly but unfortunately they still don't have the exact same number of columns so they won't rbind nicely with the base R function. 
+
+This is likely to be the case each year, but we can use the *dplyr* function `bind_rows()` which will rbind any rows where the columns match and will fill any rows where there are extra columns with NAs.
+
+```{r bind data}
+
+covariates_merged <- dplyr::bind_rows(covariates$covs_2023,
+                                      covariates$covs_2022,
+                                      covariates$covs_2021) %>%
+  # Sorting the covariates makes it a bit easier to scroll through
+  select(1:5, sort(names(.)[-(1:5)]))
+
+head(covariates_merged)
+```
+
+Let's check over this data to make sure the bind worked how we expected it to.
+
+### Structure
+
+While we specified how the columns should read in when we imported the data, this could change during the merge or from year-to-year so let's double check the data structure now that all 6 LUs are in one data frame.
+
+We can also check that all the LUs are indeed in the data and all the sites. We should have 6 LUs and 233 sites (155 from 2022-2023 and 78 from 2021-2022)
+
+```{r bind data str}
+str(covariates_merged)
+```
+Looks like everything read in correctly, I don't see any missing columns (we won't need the lab or gridcll column which we can deselect later),  and all the arrays (LUs) and sites are accounted for. 
+
+### NAs
+
+Let's check the data summary now, we might have NAs for some of the HFI features but otherwise shouldn't have any for the other variables.
+
+```{r bind data NAs}
+
+summary(covariates_merged)
+```
+This looks good, we will want to replace the NAs with zeros during data formatting because the only reason we have NAs is because there weren't any of those features in the other data file, and since these calculate proportions of each feature that would make the proportion zero, and we don't want to lose the other data for those sites. 
+
+
+## Data formatting
+
+This section will need to be altered year-to-year to accommodate various issues that are unique to each year, but offers a good starting point. 
+
+I like to do as much of my data manipulation I can in one *dplyr* pipe (i.e. code chunk) to avoid extra coding and assigning intermediate objects to the environment that I don't need, but if this format doesn't make sense to you, each step can be done individually if you pull the code out of the pipeline and reference the data within each function. I do write each step individually and check that it's working correctly as I go.
+
+In the code chunk below I,
+
+1. remove the camera, lab, and gridcll columns we don't need   
+2. reorder columns alphabetically except array, site, and buffer_dist which will be at the front  
+3. replace NAs with zeros     
+
+Then we run summary to check that everything worked. (If you have other formatting to do you may need to use other functions to check that everything worked)
+```{r bind data formatting}
+
+covariates_fixed <- covariates_merged %>% 
+  
+  # remove columns we won't use anymore
+  select(!c(camera, 
+            gridcll,
+            lab)) %>%  
+  
+  # order columns alphabetically
+  select(order(colnames(.))) %>% 
+  
+  # we want to move the columns that aren't HFI features or landcover to the front
+  relocate(.,
+           c(array,
+             site,
+             buff_dist)) %>% 
+  
+  # replace NAs introduced from joining data to zeros
+  replace(is.na(.),
+          0)
+
+# check that everything looks good  
+summary(covariates_fixed)
+  
+```
+
+## Finish covariate data
+
+### Save data
+
+Let's save this merged and cleaned file in case someone wants it and will do their own grouping/exploration (e.g., the next steps in this script). 
+
+Make sure when naming files we follow the best data managements practices for the ACME lab [outlined here](https://docs.google.com/document/d/1Tvz9-kLnMPp5HId9UOrUI0YNhUIK0t3c/edit).
+
+```{r save bind data}
+
+# save data in data processed folder
+write_csv(covariates_fixed,
+          'data/processed/OSM_covariates_merged_2021_2022_2023.csv')
+```
+
+### Remove messy data
+
+Now that we've merged, cleaned, and reformatted the data we don't need the list file or messy merged data anymore. Let's remove these from the environment so we don't accidentally use them. 
+
+```{r rm messy data}
+
+rm(covariates_merged,
+   covariates)
+```
+
+
+# Data formatting
+
+There are too many covariates to include in the models individually and many of them describe similar HFI features. 
+
+> Now that this section is finalized, we will use the structure outlined in the covariates_table.docx which can be found in the 'relevant_literature' folder of this repository for formatting the covariates for this and future related analyses.
+
+The covariate_table and the README file in this repository include descriptions of each feature from 
+the [ABMI human footprints wall to wall data download website for Year 2021](https://abmi.ca/home/data-analytics/da-top/da-product-overview/Human-Footprint-Products/HF-inventory.html); which can also be found in the relevant_literature folder of this repository (HFI_2021_v1_0_Metadata_Final.pdf).
+
+
+## Group covaraites
+
+As we prepare to lump the covariates together, we may need to reference the column names. Let's print that now so we have it fresh in the console. 
+
+```{r covs names}
+
+names(covariates_fixed)
+```
+
+
+Now we will use the `mutate()` function with some tidyverse trickery (i.e., nesting `across()` and `contains()` in `rowsums()`) to sum across each observation (row) by searching for various character strings. If there isn't a common character string for multiple variables we want to sum then we provide each one individually. We can also combine these methods (e.g., with 'facilities' [see code]).
+
+```{r format covs}
+covariates_grouped <- covariates_fixed %>% 
+  
+  # rename 'vegetated_edge_roads so that we can use road as keyword to group roads without including this feature
+  rename('vegetated_edge_rds' = vegetated_edge_roads) %>% 
+  
+  # within the mutate function create new column names for the grouped variables
+  mutate(
+    # borrowpits
+    borrowpits = rowSums(across(contains('borrowpit'))) + # here we use rowsums with across() and contains() to sum acrross each row any values for columns that contain the keyword above. Be careful when using that there aren't any variables that match the string (keyword) provided that you don't want to include!
+      
+      dugout +
+      lagoon +
+      sump,
+    
+    
+    # clearings
+    clearings = rowSums(across(contains('clearing'))) +
+      runway,
+    
+    # cultivations
+    cultivation = crop + 
+      cultivation_abandoned +
+      fruit_vegetables +
+      rough_pasture +
+      tame_pasture,
+    
+    # harvest areas
+    harvest = rowSums(across(contains('harvest'))),
+    
+    # industrial facilities
+    facilities = rowSums(across(contains('facility'))) +
+      rowSums(across(contains('plant'))) +
+      camp_industrial +
+      mill +
+      ris_camp_industrial +
+      ris_tank_farm +
+      ris_utilities +
+      urban_industrial,
+    
+    # mine areas
+    mines = rowSums(across(contains('mine'))) +
+      rowSums(across(contains('tailing'))) +
+      grvl_sand_pit +
+      peat +
+      ris_drainage +
+      ris_oilsands_rms +
+      ris_overburden_dump +
+      ris_reclaim_ready +
+      ris_soil_salvaged +
+      ris_waste,
+    
+    # railways
+    railways = rowSums(across(contains('rlwy'))),
+    
+    # reclaimed areas
+    reclaimed = rowSums(across(contains('reclaimed'))) +
+      ris_soil_replaced +
+      ris_windrow,
+    
+    # recreation areas
+    recreation = campground +
+      golfcourse +
+      greenspace +
+      recreation,
+    
+    # residential areas (can't use residence as keyword because 'residence_clearing' is in clearing unless we rearrange groupings or rename that one)
+    residential = country_residence +
+      rural_residence +
+      urban_residence,
+    
+    # roads (we renamed 'vegetated_edge_roads' above to 'vegetated_edge_rds' so we can use roads as keyword here which saves a bunch of coding as there are many many road variables)
+    roads = rowSums(across(contains('road'))) +
+      interchange_ramp +
+      airp_runway +
+      ris_airp_runway +
+      transfer_station,
+    
+    # seismic lines
+    seismic_lines = conventional_seismic,
+    
+    # 3D sesimic lines (put the 3D at the end though to make R happy)
+    seismic_lines_3D = low_impact_seismic,
+    
+    # transmission lines
+    transmission_lines = rowSums(across(contains('transmission'))),
+    
+    # trails
+    trails = rowSums(across(contains('trail'))),
+    
+    # vegetated edges
+    veg_edges = rowSums(across(contains('vegetated'))) +
+      surrounding_veg,
+    
+    # man-made water features
+    water = canal +
+      reservoir,
+    
+    # well sites (this probably includes 'clearing_wellpad' need to check)
+    wells = rowSums(across(contains('well'))),
+    
+    # remove columns that were used to create new columns to tidy the data frame
+         .keep = 'unused') %>% 
+  
+  # reorder alphabetically except array, site and buff_dist
+  select(order(colnames(.))) %>% 
+  
+  # we want to move the columns that aren't HFI features or landcover to the front
+  relocate(.,
+           c(array,
+             site,
+             buff_dist)) %>% 
+  
+  # reorder variables so the veg data is after all the HFI data
+  relocate(starts_with('lc_class'),
+           .after = wells)
+
+# see what's left
+names(covariates_grouped)
+
+# check the structure of new data
+str(covariates_grouped)
+
+# check summary of new data
+summary(covariates_grouped)
+```
+
+Last year there were some NAs in the data which caused problems with modeling/visualization of data. That doesn't seem to be the case this year, woohoo!! We will set this to `eval = FALSE` this year but keep it in case it shows up in future :)
+
+```{r remove na from covs, eval = FALSE}
+
+covariates_grouped <- covariates_grouped %>% 
+  
+  # remove rows with NAs
+  na.omit()
+
+```
+
+
+## Grouped histograms
+
+Let's look at the histograms again and see if we need to remove any features or feature groups without enough data
+
+```{r covs grouped histograms}
+
+# use for loop to plot histograms for all covariates
+
+for (col in 5:ncol(covariates_grouped)) {
+    hist(covariates_grouped[[col]],
+         main = paste0('OSM 2021-2023 histogram of: ', names(covariates_grouped)[col]))
+}
+```
+> IMO we don't have enough variation in data to use the following features/feature groups
+
+* cfo  
+* clearings
+* Cultivation 
+* railways
+* Reclaimed >> in 2023 a bit more variation in reclaimed is introduced by the new arrays, but still not much. 
+* Recreation
+* Residential 
+* Water
+* lc_class_20 (aka water) >> in 2023 there is quite a bit more variation in the water data. 
+* lc_class120 (aka agriculture)
+* lc_class32 (aka rocks and rubble) 
+* lc_class33 (aka exposed land)   
+
+For 2023, I (Aidan) agree with all of these except *lc_water*. I'll also add that trails don't have a tremendous amount of variation (although certainly still a bit more than these others, so they can stay for now).
+
+Also, there's not a lot of data for the following features, which are similar and of interest to OSM, so in the past they've been grouped together and we will here as well
+
+* Borrowpits    
+* Facilities    
+* Mines
+
+> For this analysis we will also combine facilities and mines
+
+
+## Group covariates further
+
+So let's modify this data and remove those features for now **this step will need to be changed each year likely**
+
+Let's also rename the landcover classes so they make more sense without having to look them up by number (*maybe should add this to script earlier for next year*)
+
+```{r covs remove features}
+
+covariates_grouped_final <- covariates_grouped %>% 
+  
+  # create column osm_industrial
+  mutate(
+    osm_industrial = borrowpits +
+    clearings +
+    facilities +
+    mines,
+    
+    # remove columns we used to make this variable
+    .keep = 'unused') %>% 
+  
+  # remove other features we don't need
+  select(!c(cfo,
+            cultivation,
+            reclaimed,
+            recreation,
+            residential,
+            water,
+            #lc_class20, this has more variation as of 2023 and can be retained!
+            lc_class120,
+            lc_class32,
+            lc_class33,
+            landfill,
+            railways)) %>%
+  
+  # rename landcover classes
+  rename(
+    lc_grassland = lc_class110,
+    lc_coniferous = lc_class210,
+    lc_broadleaf = lc_class220,
+    lc_mixed = lc_class230,
+    lc_developed = lc_class34,
+    lc_shrub = lc_class50,
+    lc_water = lc_class20) # newly added in 2023 script since there's now more variation 
+
+# check that it worked
+names(covariates_grouped)
+```
+
+## Save grouped data
+
+Let's save this data now that it's all formatted and grouped.
+
+```{r save grouped data}
+
+write_csv(covariates_grouped_final,
+          'data/processed/OSM_covariates_grouped_2021_2022_2023.csv')
+```
+
+
+## Remove messy data
+
+Let's remove the data frames we no longer need. 
+
+```{r rm messy data 2}
+
+rm(covariates_fixed,
+   covariates_grouped)
+```
+
+>We are done with this script for now, we have a nice clean data set with the HFI covariates grouped how we could use them in an analysis and the VEG covariates renamed so we don't have to memorize or lookup what the numbers mean
+

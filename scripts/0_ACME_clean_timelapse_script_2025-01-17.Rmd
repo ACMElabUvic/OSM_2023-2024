@@ -6,7 +6,7 @@ output:
   html_document:
     theme: default
     toc: yes
-    toc_float: no
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}

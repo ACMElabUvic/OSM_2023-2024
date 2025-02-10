@@ -6,7 +6,7 @@ output:
   html_document:
     theme: default
     toc: true
-    toc_float: false
+    toc_float: true
 ---
  
 > IMPORTANT the first two chunks of this r markdown file **after** the r setup allow for plot zooming, but it also means that the html file must be opened in a browser to view the document properly. When it knits in RStudio the preview will appear empty but the html when opened in a browser will have all the info and you can click on each plot to Zoom in on it. 
