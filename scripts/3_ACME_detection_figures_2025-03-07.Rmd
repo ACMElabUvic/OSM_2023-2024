@@ -1,0 +1,305 @@
+---
+title: "ACME Detection Figures for 2023-2024 OSM Fiscal Report"
+author: "Ma"
+date: "2025-03-09"
+output: 
+  html_document:
+    theme: default
+    toc: yes
+    toc_float: yes
+---
+
+
+The first two chunks of this r markdown file after the r setup allow for plot zooming, but it also means that the html file must be opened in a browser to view the document properly. When it knits in RStudio the preview will appear empty but the html when opened in a browser will have all the info and you can click on each plot to Zoom in on it. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Before you begin
+
+## Notes
+
+A few notes about this script.
+
+If you are running this with the 2023-2024 data make sure you download the whole (OSM_2023-2024 GitHub repository)[https://github.com/ACMElabUvic/OSM_2023-2024] from the ACMElabUvic GitHub. This will ensure you have all the files, data, and proper folder structure you will need to run this code and associated analyses.
+
+Also make sure you open RStudio through the R project (OSM_2023-2024.Rproj) this will automatically set your working directory to the correct place (wherever you saved the repository) and ensure you don't have to change the file paths for some of the data.
+
+Lastly, if you are looking to adapt this code for a future year of data, you will want to ensure you have run the 1_ACME_camera_script_2025-02-07.R or .Rmd with your data as there is much data formatting, cleaning, and restructuring that has to be done before this code will work. *Helpful note: The files are numbered in the order they are used for this analysis*.
+
+If you have question please email the most recent author, currently   
+
+Aidan Brushett
+M.Sc. Student
+University of Victoria    
+School of Environmental Studies     
+Email: [aidanbrushett@uvic.ca](aidanbrushett@uvic.ca)     
+
+(*update/add authors as needed*)
+
+
+## R and RStudio
+
+Before starting you should ensure you have the latest version of R and RStudio downloaded. This code was generated under R version 4.2.3 and with RStudio version 2024.04.2+764.    
+
+You can download R and RStudio [HERE](https://posit.co/download/rstudio-desktop/)   
+
+
+## R markdown
+
+This script is written in R markdown and thus uses a mix of coding markup languages and R. If you are planning to run this script with new data or make any modifications you will want to be familiar with some basics of R markdown.
+
+Below is an R markdown cheatsheet to help you get started,    
+[R markdown cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)    
+
+
+## Install and load packages
+
+If you don't already have the following packages installed, use the code below to install them. *NOTE this will not run automatically as eval=FALSE is included in the chunk setup (i.e. I don't want it to run every time I run this code since I have the packages installed)
+
+```{r install packages, eval=FALSE}
+#install.packages('tidyverse')
+#nstall.packages('PerformanceAnalytics')
+#install.packages('Hmisc')
+```
+
+Load your needed packages: 
+
+I will also make a sneaky function that I love. 
+```{r}
+library(tidyverse)
+
+`%nin%` <- Negate(`%in%`)
+```
+
+# 1. Import data
+
+Let's read in the independent detections data for all seasons. We'll also clean up the array names by removing the leading zeros (I believe this was the standard we wanted moving forward). The `str_replace()` solution is a bit of a brute fix but it works just fine. 
+
+```{r}
+indet <-    map_dfr(list.files(path = "./data/processed/", pattern = "OSM_ind_det", full.names = T),
+                    ~ read_csv(.x, 
+                               col_types = cols(array = col_factor(),
+                                           site = col_factor(),
+                                           datetime = col_datetime(),
+                                           event_id = col_character()
+                                           )
+                               )
+                    ) %>%
+  
+  select(-event_id, -timediff) %>%
+  
+  mutate(site = str_replace_all(site, c("LU09" = "LU9",
+                                        "LU01" = "LU1")) %>% 
+           as.factor(.),
+         
+         array = str_replace_all(array, c("LU09" = "LU9",
+                                          "LU01" = "LU1")) %>% 
+           as.factor(.)
+         )
+
+levels(indet$array)
+levels(indet$site)
+```
+
+This is the monthly presence-absence that we generated in an earlier script. For now (because I'm lazy) we're only uploading these. 
+
+```{r}
+presence <- read_csv("./data/processed/OSM_monthly_presence_absence_2023.csv") %>%
+
+  mutate(site = str_replace_all(site, c("LU09" = "LU9",
+                                        "LU01" = "LU1")) %>% 
+           as.factor(.),
+         
+         array = str_replace_all(array, c("LU09" = "LU9",
+                                          "LU01" = "LU1")) %>% 
+           as.factor(.)
+         )
+```
+
+Finally, we'll load up the LU classifications from the BADR report. 
+
+```{r}
+lu_classifications <- read_csv("./data/raw/landscape_unit_land_use_classifications.csv")
+```
+
+
+# 2. Make some figures
+
+## 2.0. Identify focal species
+
+We'll identify some focal species (not used for now) and also bin some of the similar species categories. 
+
+```{r}
+arrays <- c('LU9', 'LU22', 'LU14', 'LU16')
+
+# We will not use this for now
+focal_species <- c('Red squirrel',
+                   'Snowshoe hare', 
+                   'White-tailed deer',
+                   'Black bear',
+                   'Coyote',
+                   'Moose',
+                   'Lynx', 
+                   'Unknown',
+                   'Marten',
+                   'Wolverine',
+                   'Grey wolf',
+                   'Caribou',
+                   'Red fox', 
+                   'Fisher',
+                   'Spruce grouse',
+                   'Ruffed grouse', 
+                   'Grey jay',
+                   'Long-tailed weasel',
+                   'Ruffed grouse',
+                   'Short-tailed weasel',
+                   'Otter',
+                   'Canada goose',
+                   'Beaver',
+                   'Human (various)',
+                   'Porcupine',
+                   'Owl',
+                   'Cougar'
+                   )
+
+human_species <- c('ATVer', 
+                   'Human',
+                   'Hunter',
+                   'Hiker',
+                   'Domestic dog',
+                   'Snowmobiler'
+                   )
+
+unknown_species <- c('Unknown',
+                     'Unknown canid', 
+                     'Unknown ungulate',
+                     'Unknown deer',
+                     'Unknown mustelid',
+                     'Unknown bear')
+```
+
+
+## 2.1. Independent detections and naive occupancy per array
+
+For now we'll only plot the 2023-24 arrays. This will be LU9, LU9, LU14, LU16, and LU22. We read in everything above-- in case this changes in future
+```{r}
+# we can just work with these arrays for now
+for(LU in arrays){
+  
+  fig_indet <- indet %>%
+    
+    # Group together a few similar species
+    mutate(species = case_when(
+      species %in% human_species ~ "Human (various)",
+      species %in% unknown_species ~ "Unknown (various)",
+      TRUE ~ species)) %>%
+    
+    # Remove the species/arrays we don't want in the figure
+    filter(array == LU,
+           !species %in% c("Staff", 
+                           "Other", 
+                           "Other birds")) %>%
+    
+    group_by(species) %>%
+    
+    # How many rows (detections) per species?
+    summarize(total = n()) %>%
+    
+    # Ensure species is ordered by total detections
+    mutate(species = fct_reorder(species, as.numeric(total))) %>%
+    
+    ggplot(., aes(x = total, y = species)) +
+    
+      geom_bar(stat = "identity", fill = "gray30") +
+    
+      # Add labels to each bar
+      geom_text(aes(label = total), hjust = -0.3, size = 2) +  # Adjust hjust for positioning
+  
+    
+      labs(x = "Number of independent (30 min) detections",
+           y = "",
+           title = paste0(LU, 
+                          ' (', 
+                          subset(lu_classifications, array == LU)$classification,
+                          ')')
+           ) + 
+    
+      scale_x_continuous(expand = expansion(mult = c(0, 0.05))) +  # Removes whitespace on the left
+
+  theme_classic()
+
+  fig_indet
+  
+  # Save the base figure
+  ggsave(paste0("./figures/", LU, "_independent_detections.png"), width = 8, height = 5, dpi = 500) 
+
+  
+  # Now naive occupancy
+  fig_naiveocc <- presence %>%
+  
+    # Just the array for the figure
+    filter(array == LU) %>%
+  
+    # Group together a few similar species
+    mutate(species = case_when(
+      species %in% human_species ~ "Human (various)",
+      species %in% unknown_species ~ "Unknown (various)",
+      TRUE ~ species)) %>%
+  
+    group_by(array, site, species) %>%
+  
+    # This will group the data into 1 and 0 for each site/species for naive occupancy
+    summarize(presence = max(presence)) %>%
+  
+    group_by(array, species) %>%
+  
+    # Within an array, how many sites? How many present? Naive = proportion present. 
+    summarize(n_sites = n(), 
+              n_present = sum(presence),
+              naive_occ = n_present / n_sites,
+              .groups = 'drop') %>%  
+  
+    # Remove the species we don't want in the figure
+    filter(!species %in% c("Staff", 
+                           "Other", 
+                           "Other birds"),
+           naive_occ > 0) %>%
+    
+    # Ensure species is ordered by total detections
+    mutate(species = fct_reorder(species, as.numeric(naive_occ))) %>%
+  
+    ggplot(., aes(x = naive_occ, y = species)) +
+    
+      geom_bar(stat = "identity", fill = "gray30") +
+    
+      # Add labels to each bar
+      geom_text(aes(label = round(naive_occ, 2)), hjust = -0.3, size = 2) +  # Adjust hjust for positioning
+  
+      labs(x = "Naive occupancy",
+           y = "",
+           title = "   ") +
+    
+      scale_x_continuous(expand = expansion(mult = c(0, 0.05))) + # Removes whitespace on the left
+    
+    theme_classic()
+
+fig_naiveocc
+
+# Save the base figure
+ggsave(paste0("./figures/", LU, "_naive_occupancy.png"), width = 8, height = 5, dpi = 500) 
+
+# Combine the figures into one
+ggpubr::ggarrange(fig_indet, 
+                  fig_naiveocc,
+                  ncol = 1)
+
+# Save the combined figure
+ggsave(paste0("./figures/", LU, "_combined_detections_occupancy.png"), width = 8, height = 10, dpi = 500) 
+}
+# end for loop
+```
+
+
+# End of script
