@@ -407,6 +407,159 @@ covariates_grouped <- covariates_grouped %>%
 ```
 
 
+### Alternative grouping with well_aband
+
+> Marissa added this section to separate the well_aband column from the wells column for the combined ABMI and OSM report. This may be something we want to consider doing in the future? Not sure
+
+```{r}
+covariates_grouped_abmi <- covariates_fixed %>% 
+  
+  # rename 'vegetated_edge_roads so that we can use road as keyword to group roads without including this feature
+  rename('vegetated_edge_rds' = vegetated_edge_roads) %>% 
+  
+  # within the mutate function create new column names for the grouped variables
+  mutate(
+    # borrowpits
+    borrowpits = rowSums(across(contains('borrowpit'))) + # here we use rowsums with across() and contains() to sum acrross each row any values for columns that contain the keyword above. Be careful when using that there aren't any variables that match the string (keyword) provided that you don't want to include!
+      
+      dugout +
+      lagoon +
+      sump,
+    
+    
+    # clearings
+    clearings = rowSums(across(contains('clearing'))) +
+      runway,
+    
+    # cultivations
+    cultivation = crop + 
+      cultivation_abandoned +
+      fruit_vegetables +
+      rough_pasture +
+      tame_pasture,
+    
+    # harvest areas
+    harvest = rowSums(across(contains('harvest'))),
+    
+    # industrial facilities
+    facilities = rowSums(across(contains('facility'))) +
+      rowSums(across(contains('plant'))) +
+      camp_industrial +
+      mill +
+      ris_camp_industrial +
+      ris_tank_farm +
+      ris_utilities +
+      urban_industrial,
+    
+    # mine areas
+    mines = rowSums(across(contains('mine'))) +
+      rowSums(across(contains('tailing'))) +
+      grvl_sand_pit +
+      peat +
+      ris_drainage +
+      ris_oilsands_rms +
+      ris_overburden_dump +
+      ris_reclaim_ready +
+      ris_soil_salvaged +
+      ris_waste,
+    
+    # railways
+    railways = rowSums(across(contains('rlwy'))),
+    
+    # reclaimed areas
+    reclaimed = rowSums(across(contains('reclaimed'))) +
+      ris_soil_replaced +
+      ris_windrow,
+    
+    # recreation areas
+    recreation = campground +
+      golfcourse +
+      greenspace +
+      recreation,
+    
+    # residential areas (can't use residence as keyword because 'residence_clearing' is in clearing unless we rearrange groupings or rename that one)
+    residential = country_residence +
+      rural_residence +
+      urban_residence,
+    
+    # roads (we renamed 'vegetated_edge_roads' above to 'vegetated_edge_rds' so we can use roads as keyword here which saves a bunch of coding as there are many many road variables)
+    roads = rowSums(across(contains('road'))) +
+      interchange_ramp +
+      airp_runway +
+      ris_airp_runway +
+      transfer_station,
+    
+    # seismic lines
+    seismic_lines = conventional_seismic,
+    
+    # 3D sesimic lines (put the 3D at the end though to make R happy)
+    seismic_lines_3D = low_impact_seismic,
+    
+    # transmission lines
+    transmission_lines = rowSums(across(contains('transmission'))),
+    
+    # trails
+    trails = rowSums(across(contains('trail'))),
+    
+    # vegetated edges
+    veg_edges = rowSums(across(contains('vegetated'))) +
+      surrounding_veg,
+    
+    # man-made water features
+    water = canal +
+      reservoir,
+    
+    # well sites (this probably includes 'clearing_wellpad' need to check)
+   wells = rowSums(across(contains('well') 
+                          & !contains('well_aband'))),
+    
+    # remove columns that were used to create new columns to tidy the data frame
+         .keep = 'unused') %>% 
+  
+  # reorder alphabetically except array, site and buff_dist
+  select(order(colnames(.))) %>% 
+  
+  # we want to move the columns that aren't HFI features or landcover to the front
+  relocate(.,
+           c(array,
+             site,
+             buff_dist)) %>% 
+  
+  # reorder variables so the veg data is after all the HFI data
+  relocate(starts_with('lc_class'),
+           .after = wells)
+
+# see what's left
+names(covariates_grouped_abmi)
+
+```
+
+Check this data more closely
+```{r}
+
+
+# check the structure of new data
+str(covariates_grouped_abmi)
+
+# check summary of new data
+summary(covariates_grouped_abmi)
+```
+
+Save data
+
+```{r save covariates abmi}
+
+write_csv(covariates_grouped_abmi,
+          'data/processed/OSM_ABMI_covariates_grouped_2021_2022_2023.csv')
+```
+
+And remove from environment so we don't accidentally use for ACME OSM stuff
+
+```{r}
+rm(covariates_grouped_abmi)
+```
+
+
 ## Grouped histograms
 
 Let's look at the histograms again and see if we need to remove any features or feature groups without enough data
