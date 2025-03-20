@@ -99,6 +99,7 @@ This file contains the various scripts needed for data formatting, visualization
 
 * **Number of variables/columns:** 5  
 * **Number of observations/rows:** 199  
+* *Note: all deployment date files from previous years follow the same format.*  
 
 **Variable List:**
 
@@ -119,7 +120,7 @@ This file contains the various scripts needed for data formatting, visualization
 
 * **Number of variables/columns:** 41  
 * **Number of observations/rows:** 285977  
-* *Note: all timelapse files from previous years follow the same format.*  
+* *Note: all timelapse files from previous years follow the same format, but do not have a fullpath or datasource columns.*  
 * For more information on tagging details, consult the ACME OSM Image Tagging Protocol  
 
 **Variable List:**

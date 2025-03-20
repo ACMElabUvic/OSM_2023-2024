@@ -103,19 +103,25 @@ levels(indet$array)
 levels(indet$site)
 ```
 
-This is the monthly presence-absence that we generated in an earlier script. For now (because I'm lazy) we're only uploading these. 
+We'll also reformat this into presence absence for each species and site. This is very coarse and does not reflect data availability, sampling effort, etc. but since this is an exploratory figure I won't loose too much sleep over it.  The code to make figures was adapted from my thesis code and might be slightly redundant but it's still relatively legible and works for the purposes of the report. 
 
 ```{r}
-presence <- read_csv("./data/processed/OSM_monthly_presence_absence_2023.csv") %>%
+presence_temp <- indet %>%
+  
+  group_by(array, site, species) %>%
+  
+  summarize(presence = 1)
 
-  mutate(site = str_replace_all(site, c("LU09" = "LU9",
-                                        "LU01" = "LU1")) %>% 
-           as.factor(.),
-         
-         array = str_replace_all(array, c("LU09" = "LU9",
-                                          "LU01" = "LU1")) %>% 
-           as.factor(.)
-         )
+
+presence <- crossing(species = unique(indet$species), site = unique(indet$site)) %>%
+  
+  full_join(presence_temp[1:2], by = 'site') %>%
+  
+  left_join(presence_temp[2:4], by = c('species', 'site')) %>%
+  
+  mutate(presence = ifelse(is.na(presence), 0, 1)) %>%
+  
+  distinct()
 ```
 
 Finally, we'll load up the LU classifications from the BADR report. 
@@ -132,7 +138,9 @@ lu_classifications <- read_csv("./data/raw/landscape_unit_land_use_classificatio
 We'll identify some focal species (not used for now) and also bin some of the similar species categories. 
 
 ```{r}
-arrays <- c('LU9', 'LU22', 'LU14', 'LU16')
+arrays <- unique(indet$array) 
+
+c('LU9', 'LU22', 'LU14', 'LU16')
 
 # We will not use this for now
 focal_species <- c('Red squirrel',
@@ -248,11 +256,6 @@ for(LU in arrays){
       species %in% unknown_species ~ "Unknown (various)",
       TRUE ~ species)) %>%
   
-    group_by(array, site, species) %>%
-  
-    # This will group the data into 1 and 0 for each site/species for naive occupancy
-    summarize(presence = max(presence)) %>%
-  
     group_by(array, species) %>%
   
     # Within an array, how many sites? How many present? Naive = proportion present. 
@@ -287,9 +290,6 @@ for(LU in arrays){
 
 fig_naiveocc
 
-# Save the base figure
-ggsave(paste0("./figures/", LU, "_naive_occupancy.png"), width = 8, height = 5, dpi = 500) 
-
 # Combine the figures into one
 ggpubr::ggarrange(fig_indet, 
                   fig_naiveocc,
@@ -302,4 +302,65 @@ ggsave(paste0("./figures/", LU, "_combined_detections_occupancy.png"), width = 8
 ```
 
 
+This is the exact same code as above (for the naive occupancy) but with a title added. I'm super tired so just brute forcing this code. 
+
+```{r}
+# we can just work with these arrays for now
+for(LU in arrays){
+  
+  # Now naive occupancy
+  fig_naiveocc <- presence %>%
+  
+    # Just the array for the figure
+    filter(array == LU) %>%
+  
+    # Group together a few similar species
+    mutate(species = case_when(
+      species %in% human_species ~ "Human (various)",
+      species %in% unknown_species ~ "Unknown (various)",
+      TRUE ~ species)) %>%
+  
+    group_by(array, species) %>%
+  
+    # Within an array, how many sites? How many present? Naive = proportion present. 
+    summarize(n_sites = n(), 
+              n_present = sum(presence),
+              naive_occ = n_present / n_sites,
+              .groups = 'drop') %>%  
+  
+    # Remove the species we don't want in the figure
+    filter(!species %in% c("Staff", 
+                           "Other", 
+                           "Other birds"),
+           naive_occ > 0) %>%
+    
+    # Ensure species is ordered by total detections
+    mutate(species = fct_reorder(species, as.numeric(naive_occ))) %>%
+  
+    ggplot(., aes(x = naive_occ, y = species)) +
+    
+      geom_bar(stat = "identity", fill = "gray30") +
+    
+      # Add labels to each bar
+      geom_text(aes(label = round(naive_occ, 2)), hjust = -0.3, size = 2) +  # Adjust hjust for positioning
+  
+      labs(x = "Naive occupancy",
+           y = "",
+           title = paste0(LU, 
+                          ' (', 
+                          subset(lu_classifications, array == LU)$classification,
+                          ')')
+           ) + 
+    
+      scale_x_continuous(expand = expansion(mult = c(0, 0.05))) + # Removes whitespace on the left
+    
+    theme_classic()
+
+fig_naiveocc
+
+# Save the base figure
+ggsave(paste0("./figures/", LU, "_naive_occupancy.png"), width = 8, height = 5, dpi = 500) 
+
+} # end for loop
+```
 # End of script
