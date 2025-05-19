@@ -239,7 +239,7 @@ The data manipulation and loop below will do this for us.
   
 
 # set the independent detection threshold to 30 minutes
-mins <- 30 
+threshold <- 30 
 
 # prep the data for calculating independent detections
 OSM_2023_det <- OSM_2023_data %>% 
@@ -269,7 +269,7 @@ OSM_2023_det <- OSM_2023_data %>%
   mutate(timediff = as.numeric(difftime(datetime,lag(datetime),
                                         units = "mins")),
         # Then, create an event_ID that groups detections and identifies when photos are >30min apart. 
-        event_id = cumsum(if_else(is.na(timediff) | timediff > mins,  # Create episode IDs to distinguish detections 
+        event_id = cumsum(if_else(is.na(timediff) | timediff > threshold,  # Create episode IDs to distinguish detections 
                                   1, 
                                   0))
         )
@@ -453,7 +453,7 @@ det_plot_LUs
 
 We can also save this plot if we want it for reports etc. 
 
-```{r}
+```{r, eval = FALSE}
 # save this plot
 
 ggsave('figures/OSM_ind_det_per_LU_2023.jpg',
@@ -720,7 +720,7 @@ head(covariates_all_wide)
 
 Let's also save this data
 
-```{r save wide format covariates}
+```{r save wide format covariates, eval = FALSE}
 
 # save wide format data 
 write_csv(covariates_all_wide,
@@ -1035,7 +1035,7 @@ monthly_presenceabsence <- deploy_active_months %>%
 
 Save the presence-absence dataset:
 
-```{r}
+```{r, eval = FALSE}
 write_csv(monthly_presenceabsence,
           './data/processed/OSM_monthly_presence_absence_2023.csv')
 ```
@@ -1192,7 +1192,7 @@ proportional_detection_plot
 
 If we want to save the plot for easier viewing later we can use the code below
 
-```{r save plot prop month dets}
+```{r save plot prop month dets, eval = FALSE}
 
 # save graph as jpeg (can also save as tiff, png, pdf by changing the file extension)
 ggsave('OSM_proportional_detections_2023.jpeg',
