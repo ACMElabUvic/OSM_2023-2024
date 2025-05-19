@@ -119,6 +119,9 @@ This sub-folder contains figures for each Landscape Unit's total independent det
 This file contains the various scripts needed for data formatting, visualization, and analysis.
 
 -   [**0_ACME_clean_timelapse_script_2025-01-17**]{style="color: #7B0F17;"}; .rmd file and knitted .html file that will gather all of the individual imagery folders from the Netdrive, clean and append them, flag errors for manual correction, then export a clean dataset to this repository *and* a location on the Netdrive. Also cleans the deployment data from the Netdrive and exports noteworthy wildlife photos to the Netdrive.
+-   **1_ACME_camera_script_2025-02-07**; .rmd file and knitted .html file that will process independent detections, as well as numerous response variables for models including proportional monthly presence. This script also gathers all the landscape covariate data, re-formats it, and appends it to the previous year's data in a consistent format.
+-   **2_ACME_landscape_covariate_exploration_script**; .rmd file and knitted .html file that will perform an exploratory analysis on the cleaned and grouped landscape covariates. Includes code for histograms, correlation, and other miscellaneous exploratory actions.
+-   **3_ACME_detection_figures_2025-03-07;** .rmd file and knitted .html file that will create summary plots of total independent detections and naive occupancy of all boreal species, organized by array. Used for the 2023/24 Fiscal Year OSM report.
 
 ## RAW DATA
 

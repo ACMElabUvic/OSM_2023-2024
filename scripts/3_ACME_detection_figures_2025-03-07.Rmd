@@ -88,8 +88,7 @@ indet <-    map_dfr(list.files(path = "./data/processed/", pattern = "OSM_ind_de
                                )
                     ) %>%
   
-  select(-event_id, -timediff) %>%
-  
+
   mutate(site = str_replace_all(site, c("LU09" = "LU9",
                                         "LU01" = "LU1")) %>% 
            as.factor(.),
