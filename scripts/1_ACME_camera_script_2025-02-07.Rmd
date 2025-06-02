@@ -16,6 +16,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
+library(sf)
 ```
 
 These chunks (only visible in RStudio) allow for plot zooming once knitted and opened in browser, can delete if you don't want in your R markdown doc
@@ -118,7 +119,7 @@ Let's plot the camera operability with `ggplot()` to look at this
 ```{r camera operability}
 
 # if starting from this point read in data
-deploy <- read_csv('data/processed/OSM_deployment_2023.csv') %>% 
+deploy <- read_csv('data/raw/OSM_deployment_2023.csv') %>% 
   
   # make sure site re-reads in as a factor to compare with other data sets
   mutate(site = as.factor(site))
@@ -135,6 +136,100 @@ ggplot(deploy, aes(color = array))+
   theme(axis.text = element_text(size = 6))
 
 ```
+
+# Site coordinates
+
+We will get these from the site deployment datasheets, originally sourced from the NetDrive. 
+
+```{r}
+osm_coords <- list.files(path="./data/raw/", 
+                               pattern="OSM_Deployment_Site_", 
+                               full.names = TRUE) %>%
+      map_dfr(.,
+          ~read_csv(.x,
+                   col_types = cols(Array = col_factor(),
+                                    Site = col_factor(),
+                                    Lat = col_number(),
+                                    Long = col_number())
+                   ) %>%
+            
+            set_names(names(.) %>% tolower()) %>%
+            
+            select(-array) %>%
+            
+            mutate(
+              site = gsub("-", "_", site) %>% # First, replace the hyphen with underscore
+                gsub("_0+", "_", .) %>% # Then, remove leading zeros after the underscore
+                gsub(" ", "", .) %>% # Then, remove any spaces
+                gsub("LU0", "LU", .) %>% # Remove leading zeros from LU names for consistency
+                as.factor(.), # Then, convert back to factor
+               ) %>%
+            
+            separate_wider_delim(site,
+                                 delim = '_',
+                                 names = c('array', 'camera'),
+                                 cols_remove = FALSE) %>% 
+      
+            # specify format of new columns
+            mutate(
+              array = as.factor(array),
+              camera = as.factor(camera)
+              ) %>%
+            
+            select(array, site, lat, long)
+      )
+```
+
+Get UTM coordinates (NAD83 UTM 12N):
+                     
+```{r}
+# assuming lat/long was extracted in NAD83
+osm_coords <- st_as_sf(osm_coords, coords = c("long", "lat"), crs = 4269) %>% 
+  
+  mutate(long = st_coordinates(.)[,1],
+         lat = st_coordinates(.)[,2]) %>%
+  
+  st_transform(osm_coords, crs = 26912) %>%
+  
+  mutate(easting_12n = st_coordinates(.)[,1],
+         northing_12n = st_coordinates(.)[,2]) %>%
+  
+  st_drop_geometry(.)
+
+st_crs(osm_coords)
+```
+
+Read in the deployment data for everything. Just nice to have this in one place. 
+
+```{r}
+deploy_multi_year <- list.files(path="./data/raw/", 
+                               pattern="OSM_deployment_20", 
+                               full.names = TRUE) %>%
+      map_dfr(.,
+          ~read_csv(.x)
+                   ) %>%
+  
+  # make sure site re-reads in as a factor to compare with other data sets
+  mutate(site = as.factor(site))
+```
+
+Append the deployment history and site coordinates into a single file and save it. 
+
+```{r}
+osm_coords_deploy <- osm_coords %>%
+  
+  left_join(deploy_multi_year, by = c("site", "array"))
+```
+                     
+
+Save the file: 
+
+```{r}
+write_csv(osm_coords_deploy, "./data/processed/OSM_site_deployment_coordinates_2021_2022_2023.csv")
+
+rm(deploy_multi_year)
+```
+
 
 # Process the detection data
 
@@ -744,7 +839,7 @@ For this we need the deployment and independent detection data we created earlie
 
 ```{r response metric data}
 # deploy
-deploy <- read_csv('data/processed/OSM_deployment_2023.csv')
+deploy <- read_csv('data/raw/OSM_deployment_2023.csv')
 
 
 # detections

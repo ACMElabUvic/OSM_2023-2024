@@ -64,12 +64,6 @@ This folder includes data for the current year (2023-2024) that has been cleaned
 
 -   [**OSM_covariates_merged_2021_2022_2023.csv**]{style="color: #7B0F17;"}; contains cleaned HFI and land cover data from LUs sampled in 2021-2022, 2022-2023, and 2023-2024 (*Note these have not been grouped yet*)
 
--   **OSM_deployment_2021.csv**; contains cleaned deployment start and end dates for all camera sites sampled in 2021-2022, including information about camera failures (early ends, datetime malfunctions).
-
--   **OSM_deployment_2022.csv**; contains cleaned deployment start and end dates for all camera sites sampled in 2023-2024, including information about camera failures (early ends, datetime malfunctions).
-
--   **OSM_deployment_2023.csv**; contains cleaned deployment start and end dates for all camera sites sampled in 2023-2024, including information about camera failures (early ends, datetime malfunctions).
-
 -   [**OSM_ind_det_2021.csv**]{style="color: #7B0F17;"}; contains independent detections for species detected on cameras from LUs sampled in 2021-2022
 
 -   [**OSM_ind_det_2022.csv**]{style="color: #7B0F17;"}; contains independent detections for species detected on cameras from LUs sampled in 2022-2023
@@ -81,6 +75,8 @@ This folder includes data for the current year (2023-2024) that has been cleaned
 -   [**OSM_proportional_detections_2022.csv**]{style="color: #7B0F17;"}; contains proportional monthly presence/absences data for a subset of mammals detected on cameras from LUs sampled in 2022-2023
 
 -   **OSM_proportional_detections_2023.csv**; contains proportional monthly presence/absences data for a subset of mammals detected on cameras from LUs sampled in 2023-2024
+
+-   **OSM_site_deployment_coordinates_2021_2022_2023.csv**; contains cleaned site coordinates, deployment start and end dates for all camera sites sampled in all years of OSM monitoring, including information about camera failures (early ends, datetime malfunctions).
 
 -   [**OSM_timelapse_2021.csv**]{style="color: #7B0F17;"}; contains cleaned image data from program Timelapse for all species and LUs sampled in 2021-2022 (not formatted into independent detections)
 
@@ -101,6 +97,12 @@ This folder includes raw data for the current year (2023-2024), and some for the
 
 -   **landscape_unit_land_use_classifications.csv**; contains land-use type classifications (reference, mine, in situ, pre-in situ) for each Landscape Unit in the OSM monitoring program.
 -   [**OSM_2023_timelapse_ddb_files.RData**]{style="color: #7B0F17;"}; contains a vector of all informative .ddb files in the ACME Netdrive containing the raw image data from image tagging.
+-   **OSM_deployment_2021.csv**; contains cleaned deployment start and end dates for all camera sites sampled in 2021-2022, including information about camera failures (early ends, datetime malfunctions).
+-   **OSM_deployment_2022.csv**; contains cleaned deployment start and end dates for all camera sites sampled in 2023-2024, including information about camera failures (early ends, datetime malfunctions).
+-   **OSM_deployment_2023.csv**; contains cleaned deployment start and end dates for all camera sites sampled in 2023-2024, including information about camera failures (early ends, datetime malfunctions).
+-   [**OSM_Deployment_Site_Data_2021.csv**]{style="color: #7B0F17;"}; contains raw data pertaining to the location, gps coordinates, date, time, and description of the sites where cameras were deployed for 2021-2022
+-   [**OSM_Deployment_Site_Data_2022.csv**]{style="color: #7B0F17;"}; contains raw data pertaining to the location, gps coordinates, date, time, and description of the sites where cameras were deployed for 2022-2023
+-   **OSM_Deployment_Site_Data_2023.csv**; contains raw data pertaining to the location, gps coordinates, date, time, and description of the sites where cameras were deployed for 2023-2024
 -   **OSM_LU09_LU14_LU16_LU22_HFI_2023_20250209.csv**; contains raw data on Human Footprint Inventory (HFI) for each site sampled in 2023-2024 at varying buffer distances.
 -   **OSM_LU09_LU14_LU16_LU22_VEG_2023_20250209.csv**; contains raw data on land cover for each site sampled in 2023-2024 at varying buffer distances.
 
@@ -133,6 +135,76 @@ This file contains the various scripts needed for data formatting, visualization
 **Variable List:**
 
 -   [**OSM_2023_timelapse_ddb_files**]{style="color: #2274A5;"}, A vector list of the location of source image tagging data on the Netdrive. Specifies full file paths to the .ddb files on the Netdrive.
+
+### DATA-SPECIFIC INFORMATION FOR: [[OSM_deployment_2023.csv]{style="color: #7B0F17;"}]
+
+-   **Number of variables/columns:** 5
+-   **Number of observations/rows:** 199
+-   *Note: all deployment date files from previous years follow the same format.*
+
+**Variable List:**
+
+-   [**array**]{style="color: #2274A5;"}, factor describing the landscape unit of a camera (i.e. LU09, LU16, LU14, or LU22).
+
+-   [**site**]{style="color: #2274A5;"}, factor where the first element abbreviation describes the landscape unit and the second element describes the camera site.
+
+-   [**start_date**]{style="color: #2274A5;"}, date indicating when the camera was deployed.
+
+-   [**end_date**]{style="color: #2274A5;"}, date indicating when the camera was retrieved.
+
+-   [**camera_failure_details**]{style="color: #2274A5;"}, character describing any issues with the camera during deployment. This may include cameras stopping recording early, or incorrect date and time records.
+
+### DATA-SPECIFIC INFORMATION FOR: [[OSM_Deployment_Site_Data_2023.csv]{style="color: #7B0F17;"}]
+
+-   **Number of variables/columns:** 21
+-   **Number of observations/rows:** 199 (one per camera site)
+-   *Note: all deployment date files from previous years follow the same format.*
+
+**Variable List:**
+
+-   [**Array**]{style="color: #2274A5;"}, a factor with 4 levels where the first element abbreviation describes the project (e.g. OSM for Oil Sands Monitoring) and the second describes the landscape unit (i.e. LU13, LU15, LU21, or LU01).
+
+-   [**DeployDate**]{style="color: #2274A5;"}, date indicating when the camera was deployed.
+
+-   [**Deploy Time**]{style="color: #2274A5;"}, time (in 24hrs) indicating when the camera was deployed.
+
+-   [**Crew**]{style="color: #2274A5;"}, factor with the initials of the crew who deployed the camera.
+
+-   [**Grid Cell \#**]{style="color: #2274A5;"}, a factor with 155 levels where the first element abbreviation describes the landscape unit (i.e. LU13, LU15, LU21, or LU01) and the second element describes the camera site.
+
+-   [**Camera Site \#**]{style="color: #2274A5;"}, [same as Grid Cell \#] - factor where the first element abbreviation describes the landscape unit (i.e. LU13, LU15, LU21, or LU01) and the second element describes the camera site.
+
+-   [**Camera Unit \#**]{style="color: #2274A5;"}, a unique character identifier for the camera unit that was deployed.
+
+-   [**SD Card \#**]{style="color: #2274A5;"}, a unique character identifier for the SD card that was deployed with the camera unit.
+
+-   [**Lat**]{style="color: #2274A5;"}, numeric latitudinal geographic coordinates for the camera location.
+
+-   [**Long**]{style="color: #2274A5;"}, numeric longitudinal geographic coordinates for the camera location.
+
+-   [**GPS Label**]{style="color: #2274A5;"}, factor with 155 levels where the first element abbreviation describes the landscape unit (i.e. LU13, LU15, LU21, or LU01) and the second element describes the camera site.
+
+-   [**Forest Type**]{style="color: #2274A5;"}, factor with 4 levels describing the type of forest at the camera site (i.e. Broadleaf, Mixed, Conifer, or Coniferous).
+
+-   [**Camera Site Description**]{style="color: #2274A5;"}, brief description characterizing the habitat of the camera site, completed by the technicians who deployed the camera at the camera site
+
+-   [**Topography**]{style="color: #2274A5;"}, a factor with 3 levels describing the topography of the camera site (i.e. Flat, Slope, or Ridge).
+
+-   [**Grade (%)**]{style="color: #2274A5;"}, a numeric measurement of the slop (incline/decline) of the camera site.
+
+-   [**Elevation (m)**]{style="color: #2274A5;"}, a numeric measurement of the elevation in meters of the camera site.
+
+-   [**Distance to Trail (m)**]{style="color: #2274A5;"}, a numeric measurement of the distance to the nearest trail in meters.
+
+-   [**Camera Direction**]{style="color: #2274A5;"}, a factor with 8 levels indication the cardinal direction the camera was pointed (i.e. NE, N, NW, W, E, SE, S, SW).
+
+-   [**Trail Use Rating**]{style="color: #2274A5;"}, a factor with 3 levels indicating the trail use (1 low, 3 high) of the animal trail the camera was deployed near
+
+-   [**Distance to Lure**]{style="color: #2274A5;"}, a numeric measurement of the distance from the camera to the lure in meters.
+
+-   [**Comments and Access Notes**]{style="color: #2274A5;"}, a character with notes for the field crew.
+
+### 
 
 ## PROCESSED DATA
 
@@ -208,24 +280,6 @@ This csv contains data from [OSM_covariates_merged_2021_2022_2023.csv]{style="co
 
 -   [**osm_industrial**]{style="color: #2274A5;"}, a numeric measurement representing the proportion of various industrial features and clearings within the buffer. This includes, borrowpits (i.e., Borrowpit-dry, Borrowpit-wet, Borrowpits, Ris-borrowpits, Dugout, Lagoon, and Sump), clearings (i.e., Clearing-unknown, Clearing-wellpad-unconfirmed, Ris-clearing, Ris-clearing-unknown, and Runway), facilities (i.e., Camp-industrial, Facility-other, Facility-unknown, Mill, Misc-oil-gas-facility, Oil-gas-plant, Ris-camp-industrial, Ris-facility-operations, Ris-facility-unknown, Ris-plant, Ris-tank-farm, Ris-utilities, and Urban-industrial), and mines (i.e., Grvl-sand-pit, Mines-oilsands, Mines-pitlake, Open-pit-mine, Peat, Ris-drainage, Ris-mines-oilsands, Ris-oilsands-rms, Ris-overburden-dump, Ris-reclaim-ready, Ris-soil-salvaged, Ris-tailing-pond, Ris-waste, and Tailing-pond).
 
-### DATA-SPECIFIC INFORMATION FOR: [[OSM_deployment_2023.csv]{style="color: #7B0F17;"}]
-
--   **Number of variables/columns:** 5
--   **Number of observations/rows:** 199
--   *Note: all deployment date files from previous years follow the same format.*
-
-**Variable List:**
-
--   [**array**]{style="color: #2274A5;"}, factor describing the landscape unit of a camera (i.e. LU09, LU16, LU14, or LU22).
-
--   [**site**]{style="color: #2274A5;"}, factor where the first element abbreviation describes the landscape unit and the second element describes the camera site.
-
--   [**start_date**]{style="color: #2274A5;"}, date indicating when the camera was deployed.
-
--   [**end_date**]{style="color: #2274A5;"}, date indicating when the camera was retrieved.
-
--   [**camera_failure_details**]{style="color: #2274A5;"}, character describing any issues with the camera during deployment. This may include cameras stopping recording early, or incorrect date and time records.
-
 ### DATA-SPECIFIC INFORMATION FOR: [OSM_ind_det_2023.csv]
 
 -   **Number of variables:** 8
@@ -259,6 +313,31 @@ This csv contains proportional monthly detection data for **selected species of 
 -   [**black_bear - caribou**]{style="color: #2274A5;"}, each of these columns is a numeric integer representing the number of months (when a camera was active for \>=0.5 month) that a species was detected (controlling for hibernation months for black bears by removing Dec-March).
 
 -   [**absent_black_bear - absent_caribou**]{style="color: #2274A5;"}, each of these columns is a numeric integer representing the number of months (when a camera was active for \>=0.5 month) that a species was **not** detected (controlling for hibernation months for black bears by removing Dec-March).
+
+### DATA-SPECIFIC INFORMATION FOR: [[OSM_site_deployment_coordinates_2021_2022_2023.csv]{style="color: #7B0F17;"}]
+
+-   **Number of variables/columns:** 9
+-   **Number of observations/rows:** 433
+
+**Variable List:**
+
+-   [**array**]{style="color: #2274A5;"}, factor describing the landscape unit of a camera (i.e. LU09, LU16, LU14, or LU22).
+
+-   [**site**]{style="color: #2274A5;"}, factor where the first element abbreviation describes the landscape unit and the second element describes the camera site.
+
+-   **long**, the longitude of the camera site in WGS84 decimal degrees
+
+-   **lat**, the latitude of the camera site in WGS84 decimal degrees
+
+-   **easting_12n**, the easting of the camera site in NAD83 UTM Zone 12N
+
+-   **northing_12n**, the northing of the camera site in NAD83 UTM Zone 12N
+
+-   [**start_date**]{style="color: #2274A5;"}, date indicating when the camera was deployed.
+
+-   [**end_date**]{style="color: #2274A5;"}, date indicating when the camera was retrieved.
+
+-   [**camera_failure_details**]{style="color: #2274A5;"}, character describing any issues with the camera during deployment. This may include cameras stopping recording early, or incorrect date and time records.
 
 ### DATA-SPECIFIC INFORMATION FOR: [[OSM_timelapse_2023.csv]{style="color: #7B0F17;"}]
 
