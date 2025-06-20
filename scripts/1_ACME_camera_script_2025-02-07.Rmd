@@ -209,8 +209,25 @@ deploy_multi_year <- list.files(path="./data/raw/",
           ~read_csv(.x)
                    ) %>%
   
+      mutate(site = gsub("-", "_", site) %>% # First, replace the hyphen with underscore
+               gsub("_0+", "_", .) %>% # Then, remove leading zeros after the underscore
+               gsub(" ", "", .) %>% # Then, remove any spaces
+               gsub("LU0", "LU", .) %>% # Remove leading zeros from LU names for consistency
+               as.factor(.), # Then, convert back to factor
+             ) %>%
+  
+      select(-array) %>%
+  
+      separate_wider_delim(site,
+                           delim = '_',
+                           names = c('array', 'camera'),
+                           cols_remove = FALSE) %>% 
+  
   # make sure site re-reads in as a factor to compare with other data sets
-  mutate(site = as.factor(site))
+  mutate(site = as.factor(site),
+         array = as.factor(array)) %>%
+  
+  select(-camera)
 ```
 
 Append the deployment history and site coordinates into a single file and save it. 
@@ -219,6 +236,8 @@ Append the deployment history and site coordinates into a single file and save i
 osm_coords_deploy <- osm_coords %>%
   
   left_join(deploy_multi_year, by = c("site", "array"))
+
+summary(osm_coords_deploy)
 ```
                      
 
