@@ -362,4 +362,170 @@ ggsave(paste0("./figures/", LU, "_naive_occupancy.png"), width = 8, height = 5, 
 
 } # end for loop
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 3. Data request from Jake 2025-10-03
+
+"For each of marten, red fox, lynx, and fisher: a graph (like our OSM sideways bar graphs) showing independent detections for each of the LU treatment types: reference, pre-in-situ, insitu, and mine. It’s for my talk. Is this possible?"
+
+```{r}
+focal_species <- c('Marten',
+                   'Red fox', 
+                   'Fisher',
+                   'Lynx'
+                   )
+
+total_sites <- indet %>%
+  
+  # Join the treatment types
+  left_join(lu_classifications, 
+            by = "array") %>%
+  
+  distinct(classification, site) %>%
+  
+  group_by(classification) %>%
+  
+  summarize(n_sites = n())
+
+
+
+
+fig_furbearer <- indet %>%
+  
+  filter(species %in% focal_species) %>%
+  
+  # Join the treatment types
+  left_join(lu_classifications, 
+            by = "array") %>%
+  
+  group_by(classification, species) %>%
+  
+  # Within an array, how many sites? How many present? Naive = proportion present. 
+  summarize(indet = n()) %>%
+  
+  left_join(total_sites, by = "classification") %>%
+  
+  mutate(indet_per_site = indet / n_sites) %>%
+  
+  ggplot(., aes(x = indet_per_site, y = classification)) +
+    
+    geom_bar(stat = "identity", fill = "gray30") +
+  
+    facet_wrap(~species, scales = "free") +
+    
+    # Add labels to each bar
+    #geom_text(aes(label = round(naive_occ, 2)), hjust = -0.3, size = 2) +  # Adjust hjust for positioning
+  
+    labs(x = "mean detections per site",
+         y = ""
+         ) + 
+    
+    scale_x_continuous(expand = expansion(mult = c(0, 0.05))) + # Removes whitespace on the left
+    
+    theme_classic() + 
+    
+    theme(strip.background = element_blank())
+
+fig_furbearer
+
+
+ggsave("./figures/furbearer_detections_2025-10-03/furbearer_detections_by_treatment.png", width = 8, height = 5)
+
+
+```
+
+
+Let's do naive occupancy to be safe:
+
+```{r}
+focal_species <- c('Marten',
+                   'Red fox', 
+                   'Fisher',
+                   'Lynx'
+                   )
+
+fig_furbearer_occ <- presence %>%
+  
+  filter(species %in% focal_species) %>%
+  
+  # Join the treatment types
+  left_join(lu_classifications, 
+            by = "array") %>%
+  
+  group_by(classification, species) %>%
+  
+  # Within an array, how many sites? How many present? Naive = proportion present. 
+  summarize(n_sites = n(), 
+            n_present = sum(presence),
+            naive_occ = n_present / n_sites,
+            .groups = 'drop') %>%
+  
+  ggplot(., aes(x = naive_occ, y = classification)) +
+    
+    geom_bar(stat = "identity", fill = "gray30") +
+  
+    facet_wrap(~species, scales = "free") +
+    
+    # Add labels to each bar
+    #geom_text(aes(label = round(naive_occ, 2)), hjust = -0.3, size = 2) +  # Adjust hjust for positioning
+  
+    labs(x = "naive occupancy",
+         y = ""
+         ) + 
+    
+    scale_x_continuous(expand = expansion(mult = c(0, 0.05))) + # Removes whitespace on the left
+    
+    theme_classic() + 
+    
+    theme(strip.background = element_blank())
+
+fig_furbearer_occ
+
+
+ggsave("./figures/furbearer_detections_2025-10-03/furbearer_occupancy_by_treatment.png", width = 8, height = 5)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # End of script
