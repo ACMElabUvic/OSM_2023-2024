@@ -54,6 +54,8 @@ Email: [aidanbrushett\@uvic.ca](mailto:aidanbrushett@uvic.ca)
 */processed*\
 This folder includes data for the current year (2023-2024) that has been cleaned and reformatted using scripts within this repository. It will eventually include some data from prior years (2021-2023) that was cleaned and formatted using similar scripts in a repository for that year.
 
+-   [**OSM_ABMI_covariates_grouped_2021_2022_2021.csv**]{style="color: #7B0F17;"}; contains cleaned HFI and land cover data that are grouped by similarities from all 10 LUs sampled from 2021-2023, *this specific file separates abandoned wells and active wells into two separate covariates and was initially generated for the joint ABMI-ACME lab deliverable
+
 -   [**OSM_covariates_2021.csv**]{style="color: #7B0F17;"}; contains cleaned HFI and land cover data from LUs sampled in 2021-2022
 
 -   [**OSM_covariates_2022.csv**]{style="color: #7B0F17;"}; contains cleaned HFI and land cover data from LUs sampled in 2022-2022
